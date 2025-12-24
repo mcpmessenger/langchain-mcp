@@ -36,11 +36,18 @@ if __name__ == "__main__":
     print(f"Health Check: http://{host}:{port}/health")
     print(f"MCP Manifest: http://{host}:{port}/mcp/manifest")
     
+    # Disable reload on Windows when using Playwright to avoid SelectorEventLoop conflicts
+    # Reload can force SelectorEventLoop which doesn't support subprocesses
+    use_reload = os.getenv("RELOAD", "false").lower() == "true"
+    if sys.platform == 'win32':
+        use_reload = False  # Disable reload on Windows for Playwright compatibility
+        print("Note: Auto-reload disabled on Windows for Playwright compatibility")
+    
     uvicorn.run(
         "src.main:app",
         host=host,
         port=port,
-        reload=True,
+        reload=use_reload,
         log_level="info"
     )
 

@@ -1,6 +1,8 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Server, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Brain, Server, Shield, Sparkles, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
@@ -17,7 +19,39 @@ const Index = () => {
           <p className="text-xl text-muted-foreground">
             MCP Server
           </p>
+          <div className="pt-6">
+            <Link to="/sandbox">
+              <Button size="lg" className="gap-2">
+                <Sparkles className="h-5 w-5" />
+                Try Playwright Sandbox
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
+
+        {/* Playwright Sandbox CTA */}
+        <section className="mb-16">
+          <Card className="border-primary/50 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-6 w-6 text-primary" />
+                Playwright Sandbox Preview
+              </CardTitle>
+              <CardDescription>
+                Test drive the Playwright MCP server directly on this website. See how AI "views" websites through structured accessibility snapshots.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link to="/sandbox">
+                <Button variant="outline" className="w-full md:w-auto gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  Open Sandbox
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </section>
 
         {/* Key Features */}
         <section className="mb-16">
