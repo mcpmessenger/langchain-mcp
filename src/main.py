@@ -592,16 +592,43 @@ async def _generate_accessibility_snapshot_async(url: str) -> str:
     try:
         # Launch Playwright - the event loop policy is already set at module level
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            # Use more realistic browser settings to avoid bot detection
+            browser = await p.chromium.launch(
+                headless=True,
+                args=[
+                    '--disable-blink-features=AutomationControlled',
+                    '--disable-dev-shm-usage',
+                    '--no-sandbox'
+                ]
+            )
             context = await browser.new_context(
                 viewport={"width": 1280, "height": 720},
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                locale="en-US",
+                timezone_id="America/New_York"
             )
+            
+            # Remove webdriver property to avoid detection
+            await context.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                });
+            """)
+            
             page = await context.new_page()
             
             try:
-                # Navigate to the page
-                await page.goto(url, wait_until="networkidle", timeout=30000)
+                # Navigate to the page with more lenient wait condition
+                # Some sites (like x.com) may never reach "networkidle"
+                try:
+                    await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                    # Wait a bit for dynamic content
+                    await page.wait_for_timeout(2000)
+                except Exception as nav_error:
+                    # If navigation fails, try with load event instead
+                    logger.warning(f"Navigation with domcontentloaded failed, trying load: {nav_error}")
+                    await page.goto(url, wait_until="load", timeout=30000)
+                    await page.wait_for_timeout(2000)
                 
                 # Get accessibility snapshot using JavaScript evaluation
                 # This extracts structured information from the DOM
@@ -714,9 +741,11 @@ async def _generate_accessibility_snapshot(url: str) -> str:
         if "Executable doesn't exist" in error_msg or "browserType.launch" in error_msg or "Executable" in error_msg:
             error_msg = "Chromium browser not installed. Run: playwright install chromium"
         elif "timeout" in error_msg.lower() or "TimeoutError" in error_type:
-            error_msg = f"Request timed out after 30 seconds. The website may be slow or unreachable: {error_msg}"
+            error_msg = f"Request timed out after 30 seconds. The website may be slow, unreachable, or blocking automated access. Try a different URL or check if the site allows automated browsing."
         elif "net::" in error_msg.lower() or "dns" in error_msg.lower() or "ERR_" in error_msg:
             error_msg = f"Network error accessing the website: {error_msg}"
+        elif "blocked" in error_msg.lower() or "forbidden" in error_msg.lower() or "403" in error_msg:
+            error_msg = f"The website is blocking automated access. Some sites (like x.com/twitter) have strict anti-bot measures. Try a different URL."
         elif error_type == "NotImplementedError":
             error_msg = f"Playwright compatibility issue: {error_msg or 'Windows event loop policy may need adjustment'}"
         elif not error_msg or error_msg == "Unknown error":

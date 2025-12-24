@@ -223,10 +223,27 @@ const Sandbox = () => {
         {/* Error Display */}
         {snapshotError && (
           <Card className="mb-6 border-destructive">
-            <CardContent className="pt-6">
-              <p className="text-destructive">
+            <CardContent className="pt-6 space-y-2">
+              <p className="text-destructive font-semibold">
                 Error: {snapshotError instanceof Error ? snapshotError.message : "Failed to load snapshot"}
               </p>
+              {(snapshotError instanceof Error && 
+                (snapshotError.message.toLowerCase().includes("blocking") || 
+                 snapshotError.message.toLowerCase().includes("x.com") ||
+                 snapshotError.message.toLowerCase().includes("twitter"))) && (
+                <div className="mt-3 p-3 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Note:</strong> Some websites (like x.com/twitter) have strict anti-bot measures 
+                    that prevent automated access. Try a different URL like:
+                  </p>
+                  <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground space-y-1">
+                    <li>wikipedia.org</li>
+                    <li>github.com</li>
+                    <li>google.com</li>
+                    <li>example.com</li>
+                  </ul>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
