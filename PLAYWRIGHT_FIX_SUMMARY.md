@@ -20,7 +20,7 @@ File "...\asyncio\base_events.py", line 533, in _make_subprocess_transport
 
 ## The Fix
 
-**Changed in `src/main.py` (line 27):**
+### Fix 1: Event Loop Policy in `src/main.py` (line 29)
 
 **Before:**
 ```python
@@ -34,12 +34,66 @@ if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 ```
 
+### Fix 2: Disable Uvicorn Reload in `run_server.py` (line 39-44)
+
+**Before:**
+```python
+uvicorn.run(
+    "src.main:app",
+    host=host,
+    port=port,
+    reload=True,  # This can force SelectorEventLoop!
+    log_level="info"
+)
+```
+
+**After:**
+```python
+# Disable reload on Windows when using Playwright to avoid SelectorEventLoop conflicts
+use_reload = os.getenv("RELOAD", "false").lower() == "true"
+if sys.platform == 'win32':
+    use_reload = False  # Disable reload on Windows for Playwright compatibility
+
+uvicorn.run(
+    "src.main:app",
+    host=host,
+    port=port,
+    reload=use_reload,
+    log_level="info"
+)
+```
+
+### Fix 3: Safety Policy in Sync Function (line 472-477)
+
+Added explicit policy setting in the sync function as a safety measure:
+
+```python
+def _generate_accessibility_snapshot_sync(url: str) -> str:
+    # Ensure this specific thread uses ProactorEventLoop
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    # ... rest of function
+```
+
 ## Why This Works
 
-- `WindowsProactorEventLoopPolicy()` creates a `ProactorEventLoop`
-- `ProactorEventLoop` **DOES support subprocess creation** on Windows
-- This is the recommended event loop for Windows when subprocesses are needed
-- Playwright can now launch browser processes successfully
+1. **ProactorEventLoop Policy:**
+   - `WindowsProactorEventLoopPolicy()` creates a `ProactorEventLoop`
+   - `ProactorEventLoop` **DOES support subprocess creation** on Windows
+   - This is the recommended event loop for Windows when subprocesses are needed
+
+2. **Disabling Uvicorn Reload:**
+   - Uvicorn's `--reload` flag can force `SelectorEventLoop` for file watching
+   - This overrides the module-level policy setting
+   - Disabling reload on Windows ensures ProactorEventLoop persists
+
+3. **Thread-Level Safety:**
+   - Even sync Playwright uses asyncio internally
+   - Setting the policy in the thread function ensures it's applied even if the module-level setting was overridden
+
+4. **Result:**
+   - Playwright can now launch browser processes successfully
+   - No more `NotImplementedError` from subprocess creation
 
 ## Testing
 

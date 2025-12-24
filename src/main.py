@@ -474,7 +474,15 @@ def _generate_accessibility_snapshot_sync(url: str) -> str:
     Synchronous wrapper for generating accessibility snapshot.
     This runs in a separate thread to avoid event loop conflicts on Windows.
     Uses sync Playwright API to avoid async issues.
+    
+    Note: Even sync Playwright uses asyncio internally, so we must ensure
+    the thread has the correct event loop policy set.
     """
+    # Ensure this specific thread uses ProactorEventLoop if it triggers any internal async
+    # This is a safety measure in case the module-level policy wasn't applied
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    
     try:
         from playwright.sync_api import sync_playwright
         
