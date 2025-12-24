@@ -24,8 +24,8 @@ const Index = () => {
           {/* Logo Section */}
           <div className="flex items-center justify-center gap-8 mb-8">
             <img 
-              src="/stk8sqYZ_400x400.png" 
-              alt="Playwright Logo" 
+              src="/langchain_logo.png" 
+              alt="LangChain Logo" 
               className="h-16 md:h-20 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
             />
             <div className="text-2xl text-muted-foreground">×</div>
@@ -37,10 +37,10 @@ const Index = () => {
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold text-foreground">
-            Playwright Sandbox
+            LangChain Agent
           </h1>
           <p className="text-xl text-muted-foreground">
-            MCP Server Preview
+            MCP Server
           </p>
           <div className="pt-6">
             <Link to="/sandbox">

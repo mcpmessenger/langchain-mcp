@@ -177,7 +177,22 @@ const Sandbox = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="text-center space-y-4 mb-8">
+        <div className="text-center space-y-6 mb-8">
+          {/* Logo Section */}
+          <div className="flex items-center justify-center gap-8 mb-4">
+            <img 
+              src="/stk8sqYZ_400x400.png" 
+              alt="Playwright Logo" 
+              className="h-12 md:h-16 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+            />
+            <div className="text-xl text-muted-foreground">×</div>
+            <img 
+              src="/ChatGPT Image Nov 24, 2025, 02_59_09 PM.png" 
+              alt="MCP Messenger Logo" 
+              className="h-12 md:h-16 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+            />
+          </div>
+          
           <h1 className="text-4xl md:text-5xl font-bold text-foreground">
             Playwright Sandbox
           </h1>
