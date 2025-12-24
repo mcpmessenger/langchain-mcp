@@ -7,12 +7,35 @@ import { Link } from "react-router-dom";
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
-      <header className="container mx-auto px-4 py-6 flex justify-end">
+      <header className="container mx-auto px-4 py-6 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2">
+          <img 
+            src="/ChatGPT Image Nov 24, 2025, 02_59_09 PM.png" 
+            alt="MCP Messenger Logo" 
+            className="h-8 w-8 object-contain"
+          />
+          <span className="font-semibold text-lg">MCP Messenger</span>
+        </Link>
         <ThemeToggle />
       </header>
       
       <main className="container mx-auto px-4 py-12 max-w-5xl">
-        <div className="text-center space-y-4 mb-16">
+        <div className="text-center space-y-6 mb-16">
+          {/* Logo Section */}
+          <div className="flex items-center justify-center gap-8 mb-8">
+            <img 
+              src="/langchain_logo.png" 
+              alt="LangChain Logo" 
+              className="h-16 md:h-20 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+            />
+            <div className="text-2xl text-muted-foreground">×</div>
+            <img 
+              src="/ChatGPT Image Nov 24, 2025, 02_59_09 PM.png" 
+              alt="MCP Messenger Logo" 
+              className="h-16 md:h-20 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+            />
+          </div>
+          
           <h1 className="text-5xl md:text-7xl font-bold text-foreground">
             LangChain Agent
           </h1>

@@ -165,8 +165,13 @@ const Sandbox = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <Link to="/" className="text-lg font-semibold hover:underline">
-          ← Back to Home
+        <Link to="/" className="flex items-center gap-2 text-lg font-semibold hover:opacity-80 transition-opacity">
+          <img 
+            src="/ChatGPT Image Nov 24, 2025, 02_59_09 PM.png" 
+            alt="MCP Messenger Logo" 
+            className="h-6 w-6 object-contain"
+          />
+          <span>← Back to Home</span>
         </Link>
         <ThemeToggle />
       </header>
