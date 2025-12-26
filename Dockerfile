@@ -65,14 +65,15 @@ RUN playwright install --with-deps chromium
 # Copy application code
 COPY src/ ./src/
 
-# Copy startup script
+# Copy startup scripts
 COPY src/start.sh ./start.sh
-RUN chmod +x ./start.sh
+COPY src/start_server.py ./start_server.py
+RUN chmod +x ./start.sh ./start_server.py
 
 # Expose port (Cloud Run will override this)
 EXPOSE 8000
 
-# Run the application using startup script
+# Run the application using Python startup script (more reliable than shell script)
 # Cloud Run sets PORT env var automatically
-CMD ["./start.sh"]
+CMD ["python", "start_server.py"]
 
