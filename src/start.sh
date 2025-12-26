@@ -3,10 +3,11 @@
 # Reads PORT from environment (set by Cloud Run) or defaults to 8000
 # Runs FastAPI server for Cloud Run deployment
 
+# Get PORT from environment (Cloud Run sets this automatically)
 PORT=${PORT:-8000}
-export HOST=0.0.0.0
-export PORT=$PORT
+HOST=${HOST:-0.0.0.0}
 
 # Run FastAPI server using uvicorn
-exec python -m uvicorn src.main:app --host $HOST --port $PORT
+# Use exec to replace shell process with uvicorn
+exec python -m uvicorn src.main:app --host "$HOST" --port "$PORT"
 
