@@ -12,7 +12,7 @@ import sys
 import time
 import uuid
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -110,6 +110,28 @@ class PlaywrightSnapshotRequest(BaseModel):
     """Playwright Snapshot Request Model"""
     url: str = Field(..., description="The URL to snapshot")
     use_cache: bool = Field(True, description="Whether to use cached results")
+
+
+class PlaywrightNavigateRequest(BaseModel):
+    """Playwright Navigate Request Model"""
+    url: str = Field(..., description="The URL to navigate to")
+    search_query: Optional[str] = Field(None, description="Optional search query to perform automatically")
+    auto_search: bool = Field(True, description="Whether to auto-perform search (default: True if search_query provided)")
+    search_box_selector: Optional[str] = Field(None, description="Optional custom selector for search box")
+    search_button_selector: Optional[str] = Field(None, description="Optional custom selector for search button")
+    wait_for_results: bool = Field(True, description="Whether to wait for results page to load (default: True)")
+    wait_timeout: int = Field(10000, description="Maximum wait time in ms (default: 10000)")
+
+
+class PlaywrightNavigateResponse(BaseModel):
+    """Playwright Navigate Response Model"""
+    success: bool
+    url: str
+    search_performed: bool
+    search_query: Optional[str] = None
+    snapshot: str = Field(..., description="The structured accessibility snapshot")
+    warnings: List[str] = []
+    errors: List[str] = []
 
 
 class PlaywrightSnapshotResponse(BaseModel):
@@ -819,6 +841,43 @@ async def get_playwright_snapshot(request: PlaywrightSnapshotRequest):
         cached=False,
         token_count=token_count
     )
+
+
+@app.post("/api/playwright/navigate", response_model=PlaywrightNavigateResponse)
+async def playwright_navigate(request: PlaywrightNavigateRequest):
+    """
+    Enhanced browser navigation with automatic search functionality.
+    
+    When searchQuery is provided, automatically:
+    1. Navigates to the URL
+    2. Detects and fills the search box
+    3. Clicks search button or presses Enter
+    4. Waits for results and returns results page snapshot
+    
+    This implements the Playwright MCP Auto-Search Enhancement Specification.
+    """
+    logger.info(f"POST /api/playwright/navigate - URL: {request.url}, Search: {request.search_query}")
+    
+    try:
+        from src.playwright_browser import browser_navigate
+        
+        result = await browser_navigate(
+            url=request.url,
+            search_query=request.search_query,
+            auto_search=request.auto_search,
+            search_box_selector=request.search_box_selector,
+            search_button_selector=request.search_button_selector,
+            wait_for_results=request.wait_for_results,
+            wait_timeout=request.wait_timeout
+        )
+        
+        return PlaywrightNavigateResponse(**result)
+    except Exception as e:
+        logger.error(f"Error in playwright_navigate: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to navigate: {str(e)}"
+        )
 
 
 @app.post("/api/playwright/test-prompt")
